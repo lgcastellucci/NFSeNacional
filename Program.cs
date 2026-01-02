@@ -9,20 +9,21 @@ namespace NFSeNacional
         {
             try
             {
-                if (args.Length != 1)
+                if (args.Length != 2)
                 {
-                    Console.WriteLine("Uso: NFSeNacional <chave_da_nf>");
+                    Console.WriteLine("Uso: NFSeNacional <caminho_do_certificado> <chave_da_nf>");
                     Thread.Sleep(5000);
 
                     return;
                 }
 
+                string caminhoCertificado = args[0];
+                string chave = args[1];
 
-                string chave = args[0];
+                LogService.Log("Caminho certificado: " + caminhoCertificado, Color.Blue);
+                LogService.Log("NFSe Chave: " + chave, Color.Blue);
 
-                LogService.Log("Consultando NFSe Chave: " + chave + "...", Color.Blue);
-
-                var servico = new NfseService();
+                var servico = new NfseService(caminhoCertificado);
 
                 #region Consulta da NFSe (XML)
                 var respostaXml = servico.ConsultarNFSe(chave);

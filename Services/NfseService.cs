@@ -9,7 +9,16 @@ namespace NFSeNacional.Services
 {
     public class NfseService
     {
-        public static void ConfigurarTls12()
+        private readonly X509Certificate2 _certificado;
+        public NfseService(string caminhoCertificado)
+        {
+
+            if (!string.IsNullOrEmpty(caminhoCertificado))
+                _certificado = BuscarCertificado(caminhoCertificado); ;
+
+        }
+
+        private void ConfigurarTls12()
         {
             // TRUQUE PARA VS2012 / .NET 4.5:
             // O Enum Tls12 não existe nativamente no 4.5 sem patch, então usamos o cast numérico (3072).
@@ -31,14 +40,8 @@ namespace NFSeNacional.Services
         {
             ConfigurarTls12();
 
-            // 1. Buscar o Certificado Digital no Repositório do Windows
-            var certificado = BuscarCertificado();
-
-            if (certificado == null)
-                throw new Exception("Certificado digital não encontrado.");
-
             var handler = new HttpClientHandler();
-            handler.ClientCertificates.Add(certificado);
+            handler.ClientCertificates.Add(_certificado);
 
             using (var client = new HttpClient(handler))
             {
@@ -79,12 +82,8 @@ namespace NFSeNacional.Services
         {
             ConfigurarTls12(); // Garante TLS 1.2
 
-            var certificado = BuscarCertificado();
-            if (certificado == null)
-                throw new Exception("Certificado não encontrado.");
-
             var handler = new HttpClientHandler();
-            handler.ClientCertificates.Add(certificado);
+            handler.ClientCertificates.Add(_certificado);
 
             using (var client = new HttpClient(handler))
             {
@@ -126,12 +125,8 @@ namespace NFSeNacional.Services
         {
             ConfigurarTls12(); // Garante TLS 1.2
 
-            var certificado = BuscarCertificado();
-            if (certificado == null)
-                throw new Exception("Certificado não encontrado.");
-
             var handler = new HttpClientHandler();
-            handler.ClientCertificates.Add(certificado);
+            handler.ClientCertificates.Add(_certificado);
 
             using (var client = new HttpClient(handler))
             {
@@ -152,18 +147,18 @@ namespace NFSeNacional.Services
             }
         }
 
-        public X509Certificate2 BuscarCertificado()
+        private X509Certificate2 BuscarCertificado(string caminhoCertificado)
         {
-            // Caminho do arquivo PEM contendo o certificado e a chave privada
-            var diretorioDaAplicacao = AppDomain.CurrentDomain.BaseDirectory;
-            string caminho = Path.Combine(diretorioDaAplicacao, "OPERADORA_002.pem");
+            //Se o arquivo não existir então é porque passou so o nome e o mesmo esta no diretório da aplicação
+            if (!File.Exists(caminhoCertificado))
+                caminhoCertificado = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, caminhoCertificado);
 
-            if (File.Exists(caminho))
+            if (File.Exists(caminhoCertificado))
             {
                 try
                 {
                     // Carrega o certificado e a chave privada do arquivo PEM
-                    var certificado = X509Certificate2.CreateFromPemFile(caminho);
+                    var certificado = X509Certificate2.CreateFromPemFile(caminhoCertificado);
 
                     // O CreateFromPemFile NÃO importa a chave privada para o repositório de chaves do Windows de forma utilizável para TLS automaticamente.
                     certificado = new X509Certificate2(certificado.Export(X509ContentType.Pfx));
@@ -176,7 +171,7 @@ namespace NFSeNacional.Services
             }
             else
             {
-                LogService.Log("Arquivo de certificado PEM não encontrado: " + caminho);
+                LogService.Log("Arquivo de certificado PEM não encontrado: " + caminhoCertificado);
             }
 
             return null;
