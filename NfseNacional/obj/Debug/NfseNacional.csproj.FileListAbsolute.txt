@@ -1,7 +1,0 @@
-C:\Users\Wanderley.PATRIMONIO\Documents\Visual Studio 2012\Projects\NfseNacional.Validador\NfseNacional\bin\Debug\NfseNacional.Dominio.dll
-C:\Users\Wanderley.PATRIMONIO\Documents\Visual Studio 2012\Projects\NfseNacional.Validador\NfseNacional\bin\Debug\NfseNacional.Dominio.pdb
-C:\Users\Wanderley.PATRIMONIO\Documents\Visual Studio 2012\Projects\NfseNacional.Validador\NfseNacional\obj\Debug\NfseNacional.csprojResolveAssemblyReference.cache
-C:\Users\Wanderley.PATRIMONIO\Documents\Visual Studio 2012\Projects\NfseNacional.Validador\NfseNacional\obj\Debug\NfseNacional.Dominio.ValidadorForm.resources
-C:\Users\Wanderley.PATRIMONIO\Documents\Visual Studio 2012\Projects\NfseNacional.Validador\NfseNacional\obj\Debug\NfseNacional.csproj.GenerateResource.Cache
-C:\Users\Wanderley.PATRIMONIO\Documents\Visual Studio 2012\Projects\NfseNacional.Validador\NfseNacional\obj\Debug\NfseNacional.Dominio.dll
-C:\Users\Wanderley.PATRIMONIO\Documents\Visual Studio 2012\Projects\NfseNacional.Validador\NfseNacional\obj\Debug\NfseNacional.Dominio.pdb
