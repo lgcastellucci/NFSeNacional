@@ -1,6 +1,6 @@
 ﻿using System.Drawing;
 
-namespace NFSe_Nacional.Services
+namespace NFSeNacional.Services
 {
     public class LogService
     {

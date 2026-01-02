@@ -1,7 +1,7 @@
 ﻿using System.Xml;
 using System.Xml.Schema;
 
-namespace NFSe_Nacional.Services
+namespace NFSeNacional.Services
 {
     public class NfseValidator
     {

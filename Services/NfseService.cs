@@ -5,7 +5,7 @@ using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Text.Json;
 
-namespace NFSe_Nacional.Services
+namespace NFSeNacional.Services
 {
     public class NfseService
     {

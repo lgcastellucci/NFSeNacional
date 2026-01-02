@@ -1,7 +1,7 @@
-﻿using NFSe_Nacional.Services;
+﻿using NFSeNacional.Services;
 using System.Drawing;
 
-namespace NFSe_Nacional
+namespace NFSeNacional
 {
     internal class Program
     {
@@ -9,7 +9,16 @@ namespace NFSe_Nacional
         {
             try
             {
-                string chave = "35387092203966317000175000000000001726010489905886";
+                if (args.Length != 1)
+                {
+                    Console.WriteLine("Uso: NFSeNacional <chave_da_nf>");
+                    Thread.Sleep(5000);
+
+                    return;
+                }
+
+
+                string chave = args[0];
 
                 LogService.Log("Consultando NFSe Chave: " + chave + "...", Color.Blue);
 

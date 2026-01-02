@@ -1,6 +1,6 @@
 ﻿using System.Security.Cryptography;
 
-namespace NFSe_Nacional.Services
+namespace NFSeNacional.Services
 {
     // Esta classe implementa manualmente o suporte a SHA-256 que falta no .NET 4.5
     public class RSAPKCS1SHA256SignatureDescription : SignatureDescription
