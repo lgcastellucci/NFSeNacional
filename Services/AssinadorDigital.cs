@@ -10,6 +10,7 @@ namespace NFSeNacional.Services
     {
         public string AssinarDps(string xmlTexto, string serialCertificado)
         {
+            //precisa ainda adequar 
             return "";
         }
 

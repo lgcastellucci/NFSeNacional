@@ -14,32 +14,23 @@ namespace NFSeNacional.Services
         {
 
             if (!string.IsNullOrEmpty(caminhoCertificado))
-                _certificado = BuscarCertificado(caminhoCertificado); ;
+                _certificado = BuscarCertificado(caminhoCertificado);
 
-        }
-
-        private void ConfigurarTls12()
-        {
-            // TRUQUE PARA VS2012 / .NET 4.5:
-            // O Enum Tls12 não existe nativamente no 4.5 sem patch, então usamos o cast numérico (3072).
-            try
-            {
-                ServicePointManager.SecurityProtocol = (SecurityProtocolType)3072;
-            }
-            catch
-            {
-                // Fallback se o cast falhar (mas geralmente é necessário para gov.br)
-                ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls | SecurityProtocolType.Ssl3;
-            }
-
-            // Ignorar erros de validação de certificado do servidor (útil em homologação, perigoso em produção)
-            ServicePointManager.ServerCertificateValidationCallback += (sender, cert, chain, sslPolicyErrors) => true;
-        }
-
-        public async Task<string> EnviarDpsAsync(string xmlDpsAssinado, string serialCertificado)
-        {
             ConfigurarTls12();
 
+        }
+
+        public string ConsultarNFSe(string chave)
+        {
+            return ConsultarNFSeAsync(chave).Result;
+        }
+        public byte[] ConsultarDanfse(string chave)
+        {
+            return ConsultarDanfseAsync(chave).Result;
+        }
+
+        private async Task<string> EnviarDpsAsync(string xmlDpsAssinado, string serialCertificado)
+        {
             var handler = new HttpClientHandler();
             handler.ClientCertificates.Add(_certificado);
 
@@ -73,15 +64,8 @@ namespace NFSeNacional.Services
             }
 
         }
-
-        public string ConsultarNFSe(string chave)
-        {
-            return ConsultarNFSeAsync(chave).Result;
-        }
         private async Task<string> ConsultarNFSeAsync(string chave)
         {
-            ConfigurarTls12(); // Garante TLS 1.2
-
             var handler = new HttpClientHandler();
             handler.ClientCertificates.Add(_certificado);
 
@@ -116,15 +100,8 @@ namespace NFSeNacional.Services
                 return retornoStr; // Aqui deve vir o XML da NFS-e se ela existir
             }
         }
-
-        public byte[] ConsultarDanfse(string chave)
-        {
-            return ConsultarDanfseAsync(chave).Result;
-        }
         private async Task<byte[]> ConsultarDanfseAsync(string chave)
         {
-            ConfigurarTls12(); // Garante TLS 1.2
-
             var handler = new HttpClientHandler();
             handler.ClientCertificates.Add(_certificado);
 
@@ -147,6 +124,23 @@ namespace NFSeNacional.Services
             }
         }
 
+        private void ConfigurarTls12()
+        {
+            // TRUQUE PARA VS2012 / .NET 4.5:
+            // O Enum Tls12 não existe nativamente no 4.5 sem patch, então usamos o cast numérico (3072).
+            try
+            {
+                ServicePointManager.SecurityProtocol = (SecurityProtocolType)3072;
+            }
+            catch
+            {
+                // Fallback se o cast falhar (mas geralmente é necessário para gov.br)
+                ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls | SecurityProtocolType.Ssl3;
+            }
+
+            // Ignorar erros de validação de certificado do servidor (útil em homologação, perigoso em produção)
+            ServicePointManager.ServerCertificateValidationCallback += (sender, cert, chain, sslPolicyErrors) => true;
+        }
         private X509Certificate2 BuscarCertificado(string caminhoCertificado)
         {
             //Se o arquivo não existir então é porque passou so o nome e o mesmo esta no diretório da aplicação
@@ -177,7 +171,7 @@ namespace NFSeNacional.Services
             return null;
         }
 
-        public static string CompactarEnviar(string xmlTexto)
+        private static string CompactarEnviar(string xmlTexto)
         {
             // 1. Converte a string XML para bytes (UTF-8)
             byte[] buffer = Encoding.UTF8.GetBytes(xmlTexto);
@@ -194,21 +188,25 @@ namespace NFSeNacional.Services
                 return Convert.ToBase64String(memoryStream.ToArray());
             }
         }
-
-        public static string DescompactarNfseXmlGZipB64(string nfseXmlGZipB64)
+        private static string DescompactarNfseXmlGZipB64(string nfseXmlGZipB64)
         {
             // 1. Decodifica de Base64 para bytes
             byte[] gzipBytes = Convert.FromBase64String(nfseXmlGZipB64);
 
             // 2. Descompacta usando GZipStream
             using (var compressedStream = new MemoryStream(gzipBytes))
-            using (var gzipStream = new GZipStream(compressedStream, CompressionMode.Decompress))
-            using (var resultStream = new MemoryStream())
             {
-                gzipStream.CopyTo(resultStream);
-                // 3. Converte para string UTF-8
-                return Encoding.UTF8.GetString(resultStream.ToArray());
+                using (var gzipStream = new GZipStream(compressedStream, CompressionMode.Decompress))
+                {
+                    using (var resultStream = new MemoryStream())
+                    {
+                        gzipStream.CopyTo(resultStream);
+                        // 3. Converte para string UTF-8
+                        return Encoding.UTF8.GetString(resultStream.ToArray());
+                    }
+                }
             }
         }
+
     }
 }

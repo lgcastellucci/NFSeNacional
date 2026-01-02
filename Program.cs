@@ -11,7 +11,7 @@ namespace NFSeNacional
             {
                 if (args.Length != 2)
                 {
-                    Console.WriteLine("Uso: NFSeNacional <caminho_do_certificado> <chave_da_nf>");
+                    Console.WriteLine("Uso: NFSeNacional <caminho_do_certificado.pem> <chave_da_nf>");
                     Thread.Sleep(5000);
 
                     return;
@@ -84,6 +84,7 @@ namespace NFSeNacional
                     LogService.Log("Resposta não contem um PDF.", Color.Orange);
                 }
                 #endregion
+
             }
             catch (Exception ex)
             {
