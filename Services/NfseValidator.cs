@@ -15,14 +15,14 @@ namespace NFSeNacional.Services
 
             // Configuração para PERMITIR DTD ao ler os arquivos XSD
             // Isso resolve o erro "DTD é proibido" ao carregar o xmldsig-core-schema.xsd
-            XmlReaderSettings settingsXsd = new XmlReaderSettings();
+            var settingsXsd = new XmlReaderSettings();
             settingsXsd.DtdProcessing = DtdProcessing.Parse;
 
             // Carregamos os XSDs usando um Reader configurado, não direto pelo caminho
             AdicionarSchema("http://www.w3.org/2000/09/xmldsig#", Path.Combine(caminhoPastaXsd, "xmldsig-core-schema.xsd"), settingsXsd);
-            AdicionarSchema("http://www.sped.fazenda.gov.br/nfse", Path.Combine(caminhoPastaXsd, "tiposSimples_v1.01.xsd"), settingsXsd);
-            AdicionarSchema("http://www.sped.fazenda.gov.br/nfse", Path.Combine(caminhoPastaXsd, "tiposComplexos_v1.01.xsd"), settingsXsd);
-            AdicionarSchema("http://www.sped.fazenda.gov.br/nfse", Path.Combine(caminhoPastaXsd, "DPS_v1.01.xsd"), settingsXsd);
+            AdicionarSchema("http://www.sped.fazenda.gov.br/nfse", Path.Combine(caminhoPastaXsd, "tiposSimples_v1.00.xsd"), settingsXsd);
+            AdicionarSchema("http://www.sped.fazenda.gov.br/nfse", Path.Combine(caminhoPastaXsd, "tiposComplexos_v1.00.xsd"), settingsXsd);
+            AdicionarSchema("http://www.sped.fazenda.gov.br/nfse", Path.Combine(caminhoPastaXsd, "DPS_v1.00.xsd"), settingsXsd);
 
             _schemas.Compile();
         }
@@ -47,7 +47,7 @@ namespace NFSeNacional.Services
         {
             Erros.Clear();
 
-            XmlReaderSettings settings = new XmlReaderSettings();
+            var settings = new XmlReaderSettings();
             settings.Schemas = _schemas;
             settings.ValidationType = ValidationType.Schema;
             settings.ValidationEventHandler += new ValidationEventHandler(ValidationCallback);

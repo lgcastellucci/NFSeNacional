@@ -10,16 +10,46 @@ namespace NFSeNacional.Services
     public class NfseService
     {
         private readonly X509Certificate2 _certificado;
+        public class retornoEnviarDps
+        {
+            public bool sucesso { get; set; }
+            public string mensagem { get; set; }
+            public int tipoAmbiente { get; set; }
+            public string versaoAplicativo { get; set; }
+            public string dataHoraProcessamento { get; set; }
+            public string idDps { get; set; }
+            public string chaveAcesso { get; set; }
+            public string nfseXmlGZipB64 { get; set; }
+            public string alertas { get; set; }
+
+            public retornoEnviarDps()
+            {
+                sucesso = false;
+                mensagem = "";
+                tipoAmbiente = 0;
+                versaoAplicativo = "";
+                dataHoraProcessamento = "";
+                idDps = "";
+                chaveAcesso = "";
+                nfseXmlGZipB64 = "";
+                alertas = "";
+            }
+        }
+
         public NfseService(string caminhoCertificado)
         {
 
             if (!string.IsNullOrEmpty(caminhoCertificado))
-                _certificado = BuscarCertificado(caminhoCertificado);
+                _certificado = Certificado.Buscar(caminhoCertificado);
 
             ConfigurarTls12();
 
         }
 
+        public retornoEnviarDps EnviarDps(string xmlDpsAssinado)
+        {
+            return EnviarDpsAsync(xmlDpsAssinado).Result;
+        }
         public string ConsultarNFSe(string chave)
         {
             return ConsultarNFSeAsync(chave).Result;
@@ -29,8 +59,10 @@ namespace NFSeNacional.Services
             return ConsultarDanfseAsync(chave).Result;
         }
 
-        private async Task<string> EnviarDpsAsync(string xmlDpsAssinado, string serialCertificado)
+        private async Task<retornoEnviarDps> EnviarDpsAsync(string xmlDpsAssinado)
         {
+            var retorno = new retornoEnviarDps();
+
             var handler = new HttpClientHandler();
             handler.ClientCertificates.Add(_certificado);
 
@@ -40,7 +72,6 @@ namespace NFSeNacional.Services
                 client.DefaultRequestHeaders.Accept.Clear();
                 client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
 
-
                 // 1. Compacta e Codifica (GZip + Base64)
                 string dpsBase64 = CompactarEnviar(xmlDpsAssinado);
 
@@ -49,18 +80,61 @@ namespace NFSeNacional.Services
 
                 var content = new StringContent(jsonBody, Encoding.UTF8, "application/json");
 
-                string urlAbsoluta = "https://sefin.producaorestrita.nfse.gov.br/SefinNacional/nfse"; //versão 2
+                string urlAbsoluta = "https://sefin.nfse.gov.br/sefinnacional/nfse";
 
-                HttpResponseMessage response = await client.PostAsync(urlAbsoluta, content);
-
+                var response = await client.PostAsync(urlAbsoluta, content);
                 string responseString = await response.Content.ReadAsStringAsync();
 
                 if (!response.IsSuccessStatusCode)
                 {
-                    throw new Exception("Erro API (" + response.StatusCode + "): " + responseString);
+                    try
+                    {
+                        //Ler o Json
+                        var jsonDocErro = JsonDocument.Parse(responseString);
+                        if (jsonDocErro.RootElement.TryGetProperty("erros", out var erros) && erros.ValueKind == JsonValueKind.Array && erros.GetArrayLength() > 0)
+                        {
+                            var primeiroErro = erros[0];
+                            if (primeiroErro.TryGetProperty("Descricao", out var descricao))
+                            {
+                                retorno.mensagem = descricao.GetString();
+                                return retorno;
+                            }
+                        }
+                    }
+                    catch
+                    {
+                    
+                    }
+
+                    retorno.mensagem = "Erro API (" + response.StatusCode + "): " + responseString;
+                    return retorno;
                 }
 
-                return responseString;
+                //Ler o Json
+                /*
+                   {
+                       "tipoAmbiente": 1,
+                       "versaoAplicativo": "SefinNacional_1.5.0",
+                       "dataHoraProcessamento": "2026-01-02T09:25:29.780627-03:00",
+                       "idDps": "NFS00000000000000000000000000000000000000000000000000",
+                       "chaveAcesso": "00000000000000000000000000000000000000000000000000",
+                       "nfseXmlGZipB64": "............................",
+                       "alertas": null
+                   }                 
+                 */
+
+                var jsonDoc = JsonDocument.Parse(responseString);
+
+                retorno.sucesso = true;
+                retorno.tipoAmbiente = jsonDoc.RootElement.GetProperty("tipoAmbiente").GetInt32();
+                retorno.versaoAplicativo = jsonDoc.RootElement.GetProperty("versaoAplicativo").GetString();
+                retorno.dataHoraProcessamento = jsonDoc.RootElement.GetProperty("dataHoraProcessamento").GetString();
+                retorno.idDps = jsonDoc.RootElement.GetProperty("idDps").GetString();
+                retorno.chaveAcesso = jsonDoc.RootElement.GetProperty("chaveAcesso").GetString();
+                retorno.nfseXmlGZipB64 = jsonDoc.RootElement.GetProperty("nfseXmlGZipB64").GetString();
+                retorno.alertas = jsonDoc.RootElement.GetProperty("alertas").GetRawText();
+
+                return retorno;
             }
 
         }
@@ -140,35 +214,6 @@ namespace NFSeNacional.Services
 
             // Ignorar erros de validação de certificado do servidor (útil em homologação, perigoso em produção)
             ServicePointManager.ServerCertificateValidationCallback += (sender, cert, chain, sslPolicyErrors) => true;
-        }
-        private X509Certificate2 BuscarCertificado(string caminhoCertificado)
-        {
-            //Se o arquivo não existir então é porque passou so o nome e o mesmo esta no diretório da aplicação
-            if (!File.Exists(caminhoCertificado))
-                caminhoCertificado = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, caminhoCertificado);
-
-            if (File.Exists(caminhoCertificado))
-            {
-                try
-                {
-                    // Carrega o certificado e a chave privada do arquivo PEM
-                    var certificado = X509Certificate2.CreateFromPemFile(caminhoCertificado);
-
-                    // O CreateFromPemFile NÃO importa a chave privada para o repositório de chaves do Windows de forma utilizável para TLS automaticamente.
-                    certificado = new X509Certificate2(certificado.Export(X509ContentType.Pfx));
-                    return certificado;
-                }
-                catch (Exception ex)
-                {
-                    LogService.Log("Erro ao carregar o certificado: " + ex.Message);
-                }
-            }
-            else
-            {
-                LogService.Log("Arquivo de certificado PEM não encontrado: " + caminhoCertificado);
-            }
-
-            return null;
         }
 
         private static string CompactarEnviar(string xmlTexto)
