@@ -1,7 +1,7 @@
 ﻿using NFSeNacional.Services;
-using System.ComponentModel.DataAnnotations;
 using System.Drawing;
 using System.Text;
+using System.Text.Json;
 
 namespace NFSeNacional
 {
@@ -13,7 +13,7 @@ namespace NFSeNacional
             {
                 if ((args.Length != 1) && (args.Length != 2))
                 {
-                    Console.WriteLine("Uso: NFSeNacional <dados_envio>");
+                    Console.WriteLine("Uso: NFSeNacional <caminho_do_certificado.pem> <dados_envio.json>");
                     Console.WriteLine("Uso: NFSeNacional <caminho_do_certificado.pem> <chave_da_nf>");
                     Thread.Sleep(5000);
 
@@ -28,12 +28,38 @@ namespace NFSeNacional
                 LogService.Log("NFSe Chave: " + chave, Color.Blue);
 
 
-                if (args.Length == 2)
+                if ((args.Length == 2) && (chave.EndsWith("json")))
                 {
                     //DPD = Declaração de Prestação de Serviço
+                    if (File.Exists(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, chave)))
+                    {
+                        LogService.Log("Arquivo json não encontrado.", Color.Red);
+                        return;
+                    }
 
+                    var dadosString = File.ReadAllText(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, chave));
+                    var jsonDadosNFSe = JsonDocument.Parse(dadosString);
 
+                    var rpsNumero = jsonDadosNFSe.RootElement.GetProperty("RpsNumero").GetString();
+                    var rpsSerie = jsonDadosNFSe.RootElement.GetProperty("RpsSerie").GetString();
 
+                    var prestadorCpfCnpj = jsonDadosNFSe.RootElement.GetProperty("PrestadorCpfCnpj").GetString();
+                    var prestadorInscricaoMunicipal = jsonDadosNFSe.RootElement.GetProperty("PrestadorInscricaoMunicipal").GetString();
+                    var prestadorMunicipio =jsonDadosNFSe.RootElement.GetProperty("PrestadorMunicipio").GetString();
+
+                    var tomadorCpfCnpj =jsonDadosNFSe.RootElement.GetProperty("TomadorCpfCnpj").GetString();
+                    var tomadorRazaoSocial = jsonDadosNFSe.RootElement.GetProperty("TomadorRazaoSocial").GetString();
+                    var tomadorMunicipio = jsonDadosNFSe.RootElement.GetProperty("TomadorMunicipio").GetString();
+                    var tomadorCep = jsonDadosNFSe.RootElement.GetProperty("TomadorCep").GetString();
+                    var tomadorLogradouro = jsonDadosNFSe.RootElement.GetProperty("TomadorLogradouro").GetString();
+                    var tomadorNumero =jsonDadosNFSe.RootElement.GetProperty("TomadorNumero").GetString();
+                    var tomadorBairro =jsonDadosNFSe.RootElement.GetProperty("TomadorBairro").GetString();
+                    var tomadorEmail = jsonDadosNFSe.RootElement.GetProperty("TomadorEmail").GetString();
+
+                    var codigoTributacao =jsonDadosNFSe.RootElement.GetProperty("CodigoTributacao").GetString();
+                    var descricaoServico = jsonDadosNFSe.RootElement.GetProperty("DescricaoServico").GetString();
+                    var informacaoComplementar =jsonDadosNFSe.RootElement.GetProperty("InformacaoComplementar").GetString();
+                    var valorServico = jsonDadosNFSe.RootElement.GetProperty("ValorServico").GetDecimal().ToString("F2").Replace(",", ".");
 
                     var dataEmissao = DateTime.Now.ToString("yyyy-MM-ddTHH:mm:sszzz");
                     var dataCompetencia = DateTime.Now.ToString("yyyy-MM-dd");
@@ -144,7 +170,6 @@ namespace NFSeNacional
                     }
    
                 }
-
 
                 var servico = new NfseService(caminhoCertificado);
 
