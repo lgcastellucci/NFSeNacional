@@ -31,7 +31,7 @@ namespace NFSeNacional
                 if (chave.EndsWith("json"))
                 {
                     #region DPD = Declaração de Prestação de Serviço
-                    if (File.Exists(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, chave)))
+                    if (!File.Exists(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, chave)))
                     {
                         LogService.Log("Arquivo json não encontrado.", Color.Red);
                         return;
@@ -43,23 +43,23 @@ namespace NFSeNacional
                     var rpsNumero = jsonDadosNFSe.RootElement.GetProperty("RpsNumero").GetString();
                     var rpsSerie = jsonDadosNFSe.RootElement.GetProperty("RpsSerie").GetString();
 
-                    var prestadorCpfCnpj = jsonDadosNFSe.RootElement.GetProperty("PrestadorCpfCnpj").GetString();
-                    var prestadorInscricaoMunicipal = jsonDadosNFSe.RootElement.GetProperty("PrestadorInscricaoMunicipal").GetString();
-                    var prestadorMunicipio = jsonDadosNFSe.RootElement.GetProperty("PrestadorMunicipio").GetString();
+                    var prestadorCpfCnpj = jsonDadosNFSe.RootElement.GetProperty("Prestador").GetProperty("CpfCnpj").GetString();
+                    var prestadorInscricaoMunicipal = jsonDadosNFSe.RootElement.GetProperty("Prestador").GetProperty("InscricaoMunicipal").GetString();
+                    var prestadorMunicipio = jsonDadosNFSe.RootElement.GetProperty("Prestador").GetProperty("Municipio").GetString();
 
-                    var tomadorCpfCnpj = jsonDadosNFSe.RootElement.GetProperty("TomadorCpfCnpj").GetString();
-                    var tomadorRazaoSocial = jsonDadosNFSe.RootElement.GetProperty("TomadorRazaoSocial").GetString();
-                    var tomadorMunicipio = jsonDadosNFSe.RootElement.GetProperty("TomadorMunicipio").GetString();
-                    var tomadorCep = jsonDadosNFSe.RootElement.GetProperty("TomadorCep").GetString();
-                    var tomadorLogradouro = jsonDadosNFSe.RootElement.GetProperty("TomadorLogradouro").GetString();
-                    var tomadorNumero = jsonDadosNFSe.RootElement.GetProperty("TomadorNumero").GetString();
-                    var tomadorBairro = jsonDadosNFSe.RootElement.GetProperty("TomadorBairro").GetString();
-                    var tomadorEmail = jsonDadosNFSe.RootElement.GetProperty("TomadorEmail").GetString();
+                    var tomadorCpfCnpj = jsonDadosNFSe.RootElement.GetProperty("Tomador").GetProperty("CpfCnpj").GetString();
+                    var tomadorRazaoSocial = jsonDadosNFSe.RootElement.GetProperty("Tomador").GetProperty("RazaoSocial").GetString();
+                    var tomadorMunicipio = jsonDadosNFSe.RootElement.GetProperty("Tomador").GetProperty("Municipio").GetString();
+                    var tomadorCep = jsonDadosNFSe.RootElement.GetProperty("Tomador").GetProperty("Cep").GetString();
+                    var tomadorLogradouro = jsonDadosNFSe.RootElement.GetProperty("Tomador").GetProperty("Logradouro").GetString();
+                    var tomadorNumero = jsonDadosNFSe.RootElement.GetProperty("Tomador").GetProperty("Numero").GetString();
+                    var tomadorBairro = jsonDadosNFSe.RootElement.GetProperty("Tomador").GetProperty("Bairro").GetString();
+                    var tomadorEmail = jsonDadosNFSe.RootElement.GetProperty("Tomador").GetProperty("Email").GetString();
 
-                    var codigoTributacao = jsonDadosNFSe.RootElement.GetProperty("CodigoTributacao").GetString();
-                    var descricaoServico = jsonDadosNFSe.RootElement.GetProperty("DescricaoServico").GetString();
-                    var informacaoComplementar = jsonDadosNFSe.RootElement.GetProperty("InformacaoComplementar").GetString();
-                    var valorServico = jsonDadosNFSe.RootElement.GetProperty("ValorServico").GetDecimal().ToString("F2").Replace(",", ".");
+                    var codigoTributacao = jsonDadosNFSe.RootElement.GetProperty("Servico").GetProperty("CodigoTributacao").GetString();
+                    var descricaoServico = jsonDadosNFSe.RootElement.GetProperty("Servico").GetProperty("Descricao").GetString();
+                    var informacaoComplementar = jsonDadosNFSe.RootElement.GetProperty("Servico").GetProperty("InformacaoComplementar").GetString();
+                    var valorServico = jsonDadosNFSe.RootElement.GetProperty("Servico").GetProperty("Valor").GetDecimal().ToString("F2").Replace(",", ".");
 
                     var dataEmissao = DateTime.Now.ToString("yyyy-MM-ddTHH:mm:sszzz");
                     var dataCompetencia = DateTime.Now.ToString("yyyy-MM-dd");
