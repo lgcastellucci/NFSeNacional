@@ -2,7 +2,7 @@
   "profiles": {
     "NFSeNacional": {
       "commandName": "Project",
-      "commandLineArgs": "OPERADORA_002.pem 35387092203966317000175000000000001726010489905886"
+      "commandLineArgs": "CN OPERADORA_002.pem 35387092203966317000175000000000001726010489905886"
     }
   }
 }

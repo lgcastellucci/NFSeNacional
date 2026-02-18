@@ -7,8 +7,9 @@ namespace NFSeNacional.Services
     {
         private XmlSchemaSet _schemas;
         public List<string> Erros { get; private set; }
+        public enum Provedor { Nacional, Ginfes }
 
-        public NfseValidator(string caminhoPastaXsd)
+        public NfseValidator(Provedor provedor, string caminhoPastaXsd)
         {
             _schemas = new XmlSchemaSet();
             Erros = new List<string>();
@@ -19,10 +20,19 @@ namespace NFSeNacional.Services
             settingsXsd.DtdProcessing = DtdProcessing.Parse;
 
             // Carregamos os XSDs usando um Reader configurado, não direto pelo caminho
-            AdicionarSchema("http://www.w3.org/2000/09/xmldsig#", Path.Combine(caminhoPastaXsd, "xmldsig-core-schema.xsd"), settingsXsd);
-            AdicionarSchema("http://www.sped.fazenda.gov.br/nfse", Path.Combine(caminhoPastaXsd, "tiposSimples_v1.00.xsd"), settingsXsd);
-            AdicionarSchema("http://www.sped.fazenda.gov.br/nfse", Path.Combine(caminhoPastaXsd, "tiposComplexos_v1.00.xsd"), settingsXsd);
-            AdicionarSchema("http://www.sped.fazenda.gov.br/nfse", Path.Combine(caminhoPastaXsd, "DPS_v1.00.xsd"), settingsXsd);
+            if (provedor == Provedor.Nacional)
+            {
+                AdicionarSchema("http://www.w3.org/2000/09/xmldsig#", Path.Combine(caminhoPastaXsd, "xmldsig-core-schema.xsd"), settingsXsd);
+                AdicionarSchema("http://www.sped.fazenda.gov.br/nfse", Path.Combine(caminhoPastaXsd, "tiposSimples_v1.00.xsd"), settingsXsd);
+                AdicionarSchema("http://www.sped.fazenda.gov.br/nfse", Path.Combine(caminhoPastaXsd, "tiposComplexos_v1.00.xsd"), settingsXsd);
+                AdicionarSchema("http://www.sped.fazenda.gov.br/nfse", Path.Combine(caminhoPastaXsd, "DPS_v1.00.xsd"), settingsXsd);
+            }
+            else if (provedor == Provedor.Ginfes)
+            {
+                AdicionarSchema("http://www.w3.org/2000/09/xmldsig#", Path.Combine(caminhoPastaXsd, "xmldsig-core-schema20020212_v03.xsd"), settingsXsd);
+                AdicionarSchema("http://www.ginfes.com.br/cabecalho_v03.xsd", Path.Combine(caminhoPastaXsd, "cabecalho_v03.xsd"), settingsXsd);
+                AdicionarSchema("http://www.ginfes.com.br/tipos_v03.xsd", Path.Combine(caminhoPastaXsd, "tipos_v03.xsd"), settingsXsd);
+            }
 
             _schemas.Compile();
         }

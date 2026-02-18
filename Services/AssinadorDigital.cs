@@ -55,5 +55,89 @@ namespace NFSeNacional.Services
             return doc.OuterXml;
         }
 
+        public string AssinarXml(string xmlTexto, string elemento)
+        {
+            var doc = new XmlDocument();
+            doc.PreserveWhitespace = true;
+            doc.LoadXml(xmlTexto);
+
+            var listaElementos = doc.GetElementsByTagName(elemento);
+            if (listaElementos.Count == 0) throw new Exception(elemento + " não encontrado");
+
+            var elementoAlvo = (XmlElement)listaElementos[0];
+            string idTarget = elementoAlvo.GetAttribute("Id");
+
+            var signedXml = new SignedXml(doc);
+            signedXml.SigningKey = _certificado.GetRSAPrivateKey();
+
+            // Alterado para SHA-1
+            signedXml.SignedInfo.SignatureMethod = SignedXml.XmlDsigRSASHA1Url;
+            signedXml.SignedInfo.CanonicalizationMethod = SignedXml.XmlDsigC14NTransformUrl;
+
+            var reference = new Reference("#" + idTarget);
+            reference.AddTransform(new XmlDsigEnvelopedSignatureTransform());
+            reference.AddTransform(new XmlDsigC14NTransform());
+            reference.DigestMethod = SignedXml.XmlDsigSHA1Url;
+
+            signedXml.AddReference(reference);
+
+            var keyInfo = new KeyInfo();
+            keyInfo.AddClause(new KeyInfoX509Data(_certificado));
+            signedXml.KeyInfo = keyInfo;
+
+            signedXml.ComputeSignature();
+
+            var xmlDigitalSignature = signedXml.GetXml();
+
+            doc.DocumentElement.AppendChild(doc.ImportNode(xmlDigitalSignature, true));
+
+            return doc.OuterXml;
+        }
+        public string AssinarXmlSha256(string xmlTexto, string elemento)
+        {
+            var doc = new XmlDocument();
+            doc.PreserveWhitespace = true;
+            doc.LoadXml(xmlTexto);
+
+            var listaElementos = doc.GetElementsByTagName(elemento);
+            if (listaElementos.Count == 0) throw new Exception(elemento + " não encontrado");
+
+            var elementoAlvo = (XmlElement)listaElementos[0];
+            string idTarget = elementoAlvo.GetAttribute("Id");
+
+            var signedXml = new SignedXml(doc);
+            signedXml.SigningKey = _certificado.GetRSAPrivateKey();
+
+            signedXml.SignedInfo.SignatureMethod = "http://www.w3.org/2001/04/xmldsig-more#rsa-sha256";
+            signedXml.SignedInfo.CanonicalizationMethod = SignedXml.XmlDsigC14NTransformUrl;
+
+            var reference = new Reference("#" + idTarget);
+            reference.AddTransform(new XmlDsigEnvelopedSignatureTransform());
+            reference.AddTransform(new XmlDsigC14NTransform());
+            reference.DigestMethod = "http://www.w3.org/2001/04/xmlenc#sha256";
+
+            signedXml.AddReference(reference);
+
+            var keyInfo = new KeyInfo();
+            keyInfo.AddClause(new KeyInfoX509Data(_certificado));
+            signedXml.KeyInfo = keyInfo;
+
+            signedXml.ComputeSignature();
+
+            var xmlDigitalSignature = signedXml.GetXml();
+
+            // FORÇA prefixo ds
+            //xmlDigitalSignature.Prefix = "ds";
+            //foreach (XmlNode node in xmlDigitalSignature.GetElementsByTagName("*"))
+            //    if (node is XmlElement el)
+            //        el.Prefix = "ds";
+
+            // CORREÇÃO: Adiciona a assinatura como filho do elemento assinado
+            //elementoAlvo.AppendChild(doc.ImportNode(xmlDigitalSignature, true));
+
+            doc.DocumentElement.AppendChild(doc.ImportNode(xmlDigitalSignature, true));
+
+            return doc.OuterXml;
+        }
     }
 }
